@@ -1,0 +1,1358 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>IT Toolbox Pro — Dashboard Risorse IT, AI & Cybersecurity (Offline)</title>
+<style>
+  :root{
+    --bg:#05070a;
+    --panel:#0a0e14;
+    --panel-2:#0d1117;
+    --border:rgba(255,255,255,.10);
+    --border-2:rgba(255,255,255,.18);
+    --text:#e2e8f0;
+    --muted:#94a3b8;
+    --muted-2:#64748b;
+    --accent:#34d399;
+    --accent-2:#38bdf8;
+    --yellow:#facc15;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;overflow:hidden;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  body::before{
+    content:"";
+    position:fixed;inset:0;z-index:-2;
+    background:
+      radial-gradient(38rem 38rem at 20% -10%, rgba(16,185,129,.10), transparent 60%),
+      radial-gradient(30rem 30rem at 110% 30%, rgba(99,102,241,.10), transparent 60%),
+      radial-gradient(26rem 26rem at 0% 100%, rgba(56,189,248,.10), transparent 60%);
+  }
+  body::after{
+    content:"";
+    position:fixed;inset:0;z-index:-1;opacity:.035;pointer-events:none;
+    background-image:linear-gradient(#334155 1px, transparent 1px), linear-gradient(90deg,#334155 1px, transparent 1px);
+    background-size:42px 42px;
+  }
+  ::-webkit-scrollbar{width:8px;height:8px;}
+  ::-webkit-scrollbar-thumb{background:rgba(148,163,184,.25);border-radius:99px;}
+  ::-webkit-scrollbar-thumb:hover{background:rgba(148,163,184,.4);}
+
+  a{color:inherit;text-decoration:none;}
+  button{font-family:inherit;cursor:pointer;}
+
+  .layout{display:flex;height:100vh;overflow:hidden;}
+
+  /* SIDEBAR */
+  #sidebar{
+    overscroll-behavior:contain;
+    position:fixed;top:0;left:0;bottom:0;width:280px;z-index:50;
+    background:rgba(10,14,20,.95);
+    backdrop-filter:blur(18px);
+    border-right:1px solid var(--border);
+    display:flex;flex-direction:column;
+    transform:translateX(-100%);
+    transition:transform .3s ease;
+    height:100vh;
+  }
+  #sidebar.open{transform:translateX(0);}
+  @media(min-width:1024px){
+    #sidebar{position:relative;transform:translateX(0);background:rgba(10,14,20,.7);flex-shrink:0;}
+    #sidebarOverlay{display:none !important;}
+  }
+  #sidebarOverlay{
+    position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(2px);z-index:45;
+    display:none;
+  }
+  #sidebarOverlay.show{display:block;}
+
+  .sidebar-mobile-head{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:16px 20px;border-bottom:1px solid var(--border);
+  }
+  @media(min-width:1024px){.sidebar-mobile-head{display:none;}}
+  .icon-btn{
+    display:inline-flex;align-items:center;justify-content:center;
+    height:32px;width:32px;border-radius:8px;background:rgba(255,255,255,.06);
+    border:1px solid var(--border); color:var(--muted);
+  }
+  .icon-btn:hover{background:rgba(255,255,255,.12);}
+
+  #navList{flex:1;overflow-y:auto;padding:14px 10px;overscroll-behavior:contain;}
+  .nav-item{
+    display:flex;align-items:center;justify-content:space-between;gap:8px;
+    padding:10px 12px;border-radius:12px;margin-bottom:4px;width:100%;
+    font-size:13.5px;font-weight:500;color:var(--muted);
+    transition:.15s;border:1px solid transparent;background:none;text-align:left;
+  }
+  .nav-item:hover{background:rgba(255,255,255,.05);color:#e2e8f0;}
+  .nav-item.active{background:rgba(255,255,255,.09);color:#f1f5f9;}
+  .nav-item.active.all{background:linear-gradient(90deg, rgba(16,185,129,.2), rgba(56,189,248,.08));color:#6ee7b7;}
+  .nav-item.active.fav{background:linear-gradient(90deg, rgba(250,204,21,.2), rgba(245,158,11,.08));color:#fde047;}
+  .nav-left{display:flex;align-items:center;gap:10px;min-width:0;}
+  .nav-left span.label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .nav-emoji{
+    display:inline-flex;align-items:center;justify-content:center;
+    height:26px;width:26px;border-radius:7px;background:rgba(0,0,0,.3);flex-shrink:0;font-size:14px;
+  }
+  .count-badge{
+    flex-shrink:0;font-size:10.5px;color:#94a3b8;background:rgba(255,255,255,.07);
+    border-radius:999px;padding:2px 7px;
+  }
+  .sep{height:1px;background:var(--border);margin:10px 4px;}
+  .sidebar-footer{border-top:1px solid var(--border);padding:14px 18px;font-size:11px;color:var(--muted-2);}
+
+  /* MAIN */
+  #main{flex:1;height:100vh;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;min-width:0;}
+
+  header{
+    position:sticky;top:0;z-index:30;
+    background:rgba(10,14,20,.8);backdrop-filter:blur(18px);
+    border-bottom:1px solid var(--border);
+  }
+  .header-inner{
+    display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:14px 18px;
+  }
+  .brand{display:flex;align-items:center;gap:10px;flex-shrink:0;}
+  .brand-icon{
+    height:36px;width:36px;border-radius:12px;
+    background:linear-gradient(135deg,#10b981,#0ea5e9,#4f46e5);
+    display:flex;align-items:center;justify-content:center;font-size:18px;
+    box-shadow:0 8px 20px -6px rgba(56,189,248,.4);
+    transition:transform .3s ease, box-shadow .3s ease;
+  }
+  .brand-icon:hover{transform:rotate(-8deg) scale(1.08);box-shadow:0 10px 26px -6px rgba(56,189,248,.65);}
+  .brand h1{font-size:15px;margin:0;font-weight:800;letter-spacing:-.01em;}
+  .brand p{margin:0;font-size:11px;color:var(--muted-2);}
+  @media(max-width:640px){.brand p{display:none;}}
+
+  .search-wrap{position:relative;flex:1;min-width:240px;order:3;}
+  @media(min-width:640px){.search-wrap{order:0;}}
+  #searchInput{
+    width:100%;padding:10px 34px;border-radius:12px;
+    background:rgba(0,0,0,.3);border:1px solid var(--border);color:var(--text);
+    font-size:13.5px;outline:none;transition:.15s;
+  }
+  #searchInput:focus{border-color:rgba(16,185,129,.4);box-shadow:0 0 0 3px rgba(16,185,129,.15);}
+  #searchInput::placeholder{color:#475569;}
+  .search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:#64748b;pointer-events:none;}
+  #clearSearch{
+    position:absolute;right:8px;top:50%;transform:translateY(-50%);
+    height:20px;width:20px;border-radius:999px;background:rgba(255,255,255,.1);
+    color:#94a3b8;border:none;display:none;align-items:center;justify-content:center;font-size:12px;
+  }
+  .kbd-shortcut{
+    position:absolute;right:10px;top:50%;transform:translateY(-50%);
+    font-size:10px;background:rgba(255,255,255,.1);border:1px solid var(--border);
+    padding:2px 6px;border-radius:4px;color:var(--muted);pointer-events:none;
+  }
+
+  .header-right{display:flex;align-items:center;gap:8px;margin-left:auto;flex-shrink:0;}
+  .result-pill{
+    display:none;font-size:12px;color:var(--muted);background:rgba(255,255,255,.05);
+    border:1px solid var(--border);border-radius:999px;padding:6px 12px;
+  }
+  @media(min-width:768px){.result-pill{display:inline-flex;}}
+  #favBtn{
+    display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;
+    border-radius:12px;padding:8px 12px;border:1px solid var(--border);
+    background:rgba(255,255,255,.05);color:#cbd5e1;
+  }
+  #favBtn.active{border-color:rgba(250,204,21,.4);background:rgba(250,204,21,.1);color:#fde047;}
+
+  main{max-width:1600px;margin:0 auto;width:100%;flex:1;padding:24px 18px;}
+  .page-title h2{font-size:22px;margin:0 0 4px;font-weight:800;letter-spacing:-.01em;}
+  .page-title p{margin:0;color:var(--muted-2);font-size:13.5px;}
+  .page-title{margin-bottom:22px;}
+
+  /* CATEGORY SECTION */
+  .cat-section{
+    position:relative;
+    border:1px solid var(--border);border-radius:16px;background:rgba(255,255,255,.02);
+    backdrop-filter:blur(14px);margin-bottom:14px;overflow:hidden;
+    transition:border-color .2s ease;
+  }
+  .cat-section::before{
+    content:"";position:absolute;top:0;left:0;bottom:0;width:3px;
+    background:var(--cat-color,#38bdf8);opacity:.5;transition:opacity .2s ease;
+  }
+  .cat-section.open::before{opacity:1;}
+  .cat-head{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    padding:14px 18px;width:100%;background:none;border:none;color:inherit;text-align:left;cursor:pointer;
+  }
+  .cat-head:hover{background:rgba(255,255,255,.03);}
+  .cat-head-left{display:flex;align-items:center;gap:12px;min-width:0;}
+  .cat-emoji-box{
+    height:38px;width:38px;flex-shrink:0;border-radius:12px;background:rgba(0,0,0,.3);
+    border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:18px;
+  }
+  .cat-head-text h3{margin:0;font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .cat-head-text p{margin:0;font-size:11.5px;color:var(--muted-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .cat-head-right{display:flex;align-items:center;gap:12px;flex-shrink:0;}
+  .cat-count{
+    font-size:11px;font-weight:600;color:var(--muted);background:rgba(255,255,255,.05);
+    border:1px solid var(--border);border-radius:999px;padding:4px 10px;
+  }
+  .chevron{transition:transform .3s;color:#64748b;}
+  .cat-section.open .chevron{transform:rotate(180deg);}
+
+  .cat-body{
+    max-height:0;overflow:hidden;transition:max-height .35s ease;
+    border-top:1px solid transparent;
+  }
+  .cat-section.open .cat-body{border-top-color:var(--border);max-height:5000px;}
+  .cat-grid{
+    display:grid;grid-template-columns:repeat(1,1fr);gap:12px;padding:18px;
+  }
+  @media(min-width:640px){.cat-grid{grid-template-columns:repeat(2,1fr);}}
+  @media(min-width:1024px){.cat-grid{grid-template-columns:repeat(3,1fr);}}
+  @media(min-width:1400px){.cat-grid{grid-template-columns:repeat(4,1fr);}}
+
+  /* CARD */
+  .card{
+    --glow:#38bdf8;
+    position:relative;overflow:hidden;border:1px solid var(--border);border-radius:16px;
+    background:rgba(255,255,255,.04);padding:16px;display:flex;flex-direction:column;justify-content:space-between;
+    transition:transform .22s ease, border-color .22s ease, background .22s ease, box-shadow .22s ease;
+    animation:fadeIn .3s ease;
+  }
+  .card::before{
+    content:"";position:absolute;top:0;left:0;right:0;height:2px;
+    background:var(--glow);opacity:0;transition:opacity .22s ease;
+  }
+  .card:hover{
+    transform:translateY(-4px);
+    border-color:rgba(255,255,255,.22);
+    background:rgba(255,255,255,.06);
+    box-shadow:0 18px 38px -18px var(--glow);
+  }
+  .card:hover::before{opacity:.9;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+  .card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;}
+  .card-left{display:flex;align-items:center;gap:12px;min-width:0;}
+  .card-emoji{
+    height:40px;width:40px;flex-shrink:0;border-radius:12px;background:rgba(0,0,0,.35);
+    border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:19px;
+  }
+  .card-title{font-size:13.5px;font-weight:700;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .card-host{font-size:11px;color:#64748b;margin:2px 0 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .fav-btn{
+    height:32px;width:32px;flex-shrink:0;border-radius:8px;background:rgba(0,0,0,.25);
+    border:1px solid var(--border);display:flex;align-items:center;justify-content:center;
+    font-size:15px;color:#64748b;transition:.15s;cursor:pointer;
+  }
+  .fav-btn:hover{transform:scale(1.1);border-color:rgba(250,204,21,.4);}
+  .fav-btn.active{border-color:rgba(250,204,21,.4);background:rgba(250,204,21,.12);color:#facc15;}
+  .card-desc{font-size:12.5px;color:#94a3b8;line-height:1.4;margin:12px 0;min-height:34px;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+  .card-bottom{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+  .badge{
+    display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:600;
+    border:1px solid var(--border);background:rgba(255,255,255,.05);border-radius:999px;padding:4px 9px;white-space:nowrap;
+  }
+  .card-actions{display:flex;gap:6px;flex-shrink:0;}
+  .action-btn{
+    height:30px;width:30px;border-radius:8px;background:rgba(0,0,0,.25);border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center;color:#cbd5e1;font-size:13px;transition:.15s;cursor:pointer;
+  }
+  .action-btn:hover{transform:scale(1.1);}
+  .action-btn.copy:hover{border-color:rgba(16,185,129,.4);color:#6ee7b7;}
+  .action-btn.open:hover{border-color:rgba(56,189,248,.4);color:#7dd3fc;}
+
+  /* EMPTY STATE */
+  .empty{
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+    border:1px dashed var(--border);border-radius:16px;padding:80px 20px;text-align:center;
+    background:rgba(255,255,255,.02);
+  }
+  .empty .emoji-big{font-size:34px;}
+  .empty p.t1{font-weight:700;font-size:14px;margin:2px 0;color:#cbd5e1;}
+  .empty p.t2{font-size:12px;color:var(--muted-2);margin:0;}
+
+  footer{border-top:1px solid var(--border);text-align:center;padding:18px;font-size:11.5px;color:#475569;}
+
+  /* TOASTS */
+  #toastStack{
+    position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:100;
+    display:flex;flex-direction:column;align-items:center;gap:8px;
+  }
+  @media(min-width:640px){#toastStack{left:auto;right:22px;transform:none;align-items:flex-end;}}
+  .toast{
+    display:flex;align-items:center;gap:8px;background:rgba(13,17,23,.97);
+    border:1px solid var(--border);border-radius:12px;padding:11px 16px;font-size:13px;
+    color:#f1f5f9;box-shadow:0 20px 40px -12px rgba(0,0,0,.6);backdrop-filter:blur(16px);
+    animation:toastIn .2s ease;
+  }
+  @keyframes toastIn{from{opacity:0;transform:translateY(10px) scale(.94);}to{opacity:1;transform:translateY(0) scale(1);}}
+
+  .hidden{display:none !important;}
+
+  /* SPLASH SCREEN - REAL ANONYMOUS BACKGROUND & ANIMATIONS */
+  #splash{
+    position:fixed;inset:0;z-index:200;
+    display:flex;align-items:center;justify-content:center;
+    background:#000000 url('https://images.unsplash.com/photo-1563089145-599997674d42?q=80&w=1920&auto=format&fit=crop') no-repeat center center;
+    background-size:cover;
+    overflow:hidden;
+    font-family:"Courier New",Courier,monospace;
+    transition:opacity .6s ease, visibility .6s ease;
+  }
+  #splash::before{
+    content:"";position:absolute;inset:0;z-index:1;
+    background:rgba(0, 0, 0, 0.85);
+  }
+  #splash.fade-out{opacity:0;visibility:hidden;pointer-events:none;}
+
+  #matrixCanvas{
+    position:absolute;inset:0;z-index:2;opacity:.3;pointer-events:none;
+  }
+
+  .cyber-grid{
+    position:absolute;inset:0;z-index:3;pointer-events:none;
+    background-image:
+      linear-gradient(rgba(0,255,102,.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,255,102,.04) 1px, transparent 1px);
+    background-size:32px 32px;
+  }
+
+  .scanline{
+    position:absolute;left:0;right:0;height:4px;z-index:4;
+    background:linear-gradient(90deg, transparent, rgba(0,255,102,.8), transparent);
+    animation:scan 3.5s linear infinite;
+    pointer-events:none;
+  }
+  @keyframes scan{
+    0%{top:-10px;}
+    100%{top:100%;}
+  }
+
+  .splash-inner{
+    position:relative;z-index:10;text-align:center;padding:32px 24px;max-width:700px;width:92%;
+    background:rgba(2, 6, 4, 0.9);
+    border:1px solid rgba(0,255,102,.6);
+    border-radius:6px;
+    backdrop-filter:blur(10px);
+    box-shadow:
+      0 0 50px rgba(0,255,102,.35),
+      inset 0 0 30px rgba(0,255,102,.1);
+  }
+
+  .splash-badge{
+    display:inline-flex;align-items:center;gap:8px;font-size:11.5px;font-weight:700;letter-spacing:.2em;
+    text-transform:uppercase;color:#00ff66;background:rgba(0,255,102,.12);
+    border:1px solid rgba(0,255,102,.7);border-radius:4px;padding:6px 14px;margin-bottom:18px;
+    box-shadow:0 0 15px rgba(0,255,102,.3);
+    animation:fadeUp .6s ease both;
+  }
+  .splash-badge .dot{height:7px;width:7px;border-radius:50%;background:#00ff66;box-shadow:0 0 10px #00ff66;
+    animation:pulseDot 1.2s ease-in-out infinite;}
+  @keyframes pulseDot{0%,100%{opacity:1;}50%{opacity:.2;}}
+
+  .anonymous-avatar{
+    font-size:46px;margin-bottom:12px;filter:drop-shadow(0 0 15px rgba(0,255,102,.9));
+    animation:fadeUp .6s ease .05s both, floatY 4s ease-in-out infinite 1s;
+  }
+  @keyframes floatY{0%,100%{transform:translateY(0);}50%{transform:translateY(-6px);}}
+
+  .splash-title{
+    font-size:clamp(28px,5vw,42px);font-weight:900;letter-spacing:.05em;margin:0 0 8px;
+    font-family:"Courier New",Courier,monospace;
+    color:#00ff66;
+    text-shadow:0 0 20px rgba(0,255,102,.8), 0 0 40px rgba(0,255,102,.4);
+    animation:fadeUp .6s ease .1s both, glitchText 4s infinite;
+  }
+  @keyframes glitchText{
+    0%, 90%, 100%{transform:none;opacity:1;}
+    92%{transform:skewX(-5deg);opacity:.8;}
+    94%{transform:skewX(5deg);opacity:.9;}
+    96%{transform:translateY(-1px);opacity:1;}
+  }
+
+  .splash-sub{
+    font-size:13px;color:#a3e635;margin:0 0 20px;line-height:1.6;font-family:"Courier New",Courier,monospace;
+    animation:fadeUp .6s ease .18s both;
+  }
+
+  .splash-terminal{
+    text-align:left;background:#010402;
+    border:1px solid rgba(0,255,102,.5);
+    border-radius:4px;padding:14px 16px;margin:0 0 22px;
+    font-family:"Courier New",Courier,monospace;
+    font-size:12px;color:#00ff66;min-height:92px;
+    animation:fadeUp .6s ease .24s both;
+    box-shadow:0 0 25px rgba(0,0,0,.9), inset 0 0 15px rgba(0,255,102,.15);
+  }
+  .splash-terminal .line{white-space:pre-wrap;line-height:1.7;}
+  .splash-terminal .ok{color:#00ff66;font-weight:bold;text-shadow:0 0 8px rgba(0,255,102,.8);}
+  .splash-terminal .cursor{display:inline-block;width:8px;height:14px;background:#00ff66;
+    margin-left:2px;vertical-align:middle;box-shadow:0 0 10px #00ff66;animation:blink 1s step-end infinite;}
+  @keyframes blink{0%,49%{opacity:1;}50%,100%{opacity:0;}}
+
+  #enterBtn{
+    position:relative;overflow:hidden;
+    display:inline-flex;align-items:center;gap:10px;
+    font-size:14.5px;font-weight:bold;letter-spacing:.1em;color:#000000;
+    background:#00ff66;
+    border:none;border-radius:4px;padding:13px 32px;
+    box-shadow:0 0 25px rgba(0,255,102,.7);
+    transition:all .18s ease;
+    animation:fadeUp .6s ease .32s both;cursor:pointer;
+    font-family:"Courier New",Courier,monospace;
+    text-transform:uppercase;
+  }
+  #enterBtn:hover{
+    background:#00cc52;
+    box-shadow:0 0 35px rgba(0,255,102,1);
+    transform:translateY(-2px);
+  }
+  #enterBtn:active{transform:translateY(0);background:#00993d;}
+  #enterBtn .arrow{transition:transform .18s ease;}
+  #enterBtn:hover .arrow{transform:translateX(5px);}
+
+  .splash-stats{
+    display:flex;gap:24px;justify-content:center;margin-top:20px;flex-wrap:wrap;
+    animation:fadeUp .6s ease .4s both;
+  }
+  .splash-stats .stat{text-align:center;}
+  .splash-stats .stat b{display:block;font-size:20px;font-weight:bold;color:#00ff66;font-family:"Courier New",Courier,monospace;text-shadow:0 0 10px rgba(0,255,102,.6);}
+  .splash-stats .stat span{font-size:10px;color:#86efac;text-transform:uppercase;letter-spacing:.1em;}
+
+  .github-badge{
+    display:inline-flex;align-items:center;gap:9px;
+    margin-top:18px;padding:7px 15px;
+    border-radius:4px;border:1px solid rgba(0,255,102,.4);
+    background:rgba(0,255,102,.08);
+    font-size:11.5px;font-weight:bold;color:#86efac;
+    text-decoration:none;font-family:"Courier New",Courier,monospace;
+    transition:all .18s ease;
+    animation:fadeUp .6s ease .46s both;
+  }
+  .github-badge:hover{
+    border-color:rgba(0,255,102,.9);
+    background:rgba(0,255,102,.2);
+    box-shadow:0 0 15px rgba(0,255,102,.5);
+  }
+  .github-badge svg{height:15px;width:15px;flex-shrink:0;fill:#00ff66;}
+  .github-badge .gh-label{color:#86efac;font-weight:normal;}
+  .github-badge .gh-name{color:#00ff66;font-weight:bold;}
+#appRoot{
+    opacity:0;transition:opacity .5s ease .1s;
+  }
+  #appRoot.visible{opacity:1;}
+
+  @media(max-width:480px){
+    .splash-inner{padding:20px;}
+    .splash-terminal{font-size:11.5px;padding:14px;}
+  }
+</style>
+</head>
+<body>
+
+<div id="splash">
+  <canvas id="matrixCanvas"></canvas>
+  <div class="cyber-grid"></div>
+  <div class="cyber-glow"></div>
+  <div class="scanline"></div>
+  <div class="splash-inner">
+    <span class="splash-badge"><span class="dot"></span> WE ARE ANONYMOUS. WE ARE LEGION.</span>
+    <div class="anonymous-avatar">🎭</div>
+    <h1 class="splash-title">IT &amp; AI TOOLBOX</h1>
+    <p class="splash-sub">[ ACCESSING SECURE MAINFRAME ... ENCRYPTION 4096-BIT ACTIVE ]</p>
+    <div class="splash-terminal" id="splashTerminal"></div>
+    <button id="enterBtn">INITIALIZE SYSTEM <span class="arrow">→</span></button>
+    <div class="splash-stats">
+      <div class="stat"><b id="statCats">0</b><span>Categorie</span></div>
+      <div class="stat"><b id="statRes">0</b><span>Risorse</span></div>
+      <div class="stat"><b>SECURE</b><span>100% Gratis</span></div>
+    </div>
+    <br/>
+    <a class="github-badge" href="https://github.com/" target="_blank" rel="noopener noreferrer" id="githubBadge">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+      <span class="gh-label">Source code on</span> <span class="gh-name">GitHub</span>
+    </a>
+  </div>
+</div>
+
+<div class="layout"   id="appRoot">
+  <div id="sidebarOverlay"></div>
+  <aside id="sidebar">
+    <div class="sidebar-mobile-head">
+      <span style="font-size:13.5px;font-weight:700;">Categorie</span>
+      <button class="icon-btn" id="closeSidebarBtn">✕</button>
+    </div>
+    <div id="navList"></div>
+    <div class="sidebar-footer">🟢 Dati salvati solo nel tuo browser</div>
+  </aside>
+
+  <div id="main">
+    <header>
+      <div class="header-inner">
+        <button class="icon-btn" id="openSidebarBtn" style="display:none;">☰</button>
+        <div class="brand">
+          <div class="brand-icon">🛡️</div>
+          <div>
+            <h1>IT Toolbox Pro</h1>
+            <p>Dashboard risorse IT, AI &amp; Cybersecurity</p>
+          </div>
+        </div>
+        <div class="search-wrap">
+          <span class="search-icon">🔍</span>
+          <input id="searchInput" type="text" placeholder="Cerca uno strumento, AI builder, comando o categoria..." />
+          <span class="kbd-shortcut">Ctrl+K</span>
+          <button id="clearSearch">✕</button>
+        </div>
+        <div class="header-right">
+          <span class="result-pill" id="resultPill">0 risultati</span>
+          <button id="favBtn">⭐ <span id="favCount">0</span></button>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div class="page-title">
+        <h2 id="pageTitle">Tutte le risorse</h2>
+        <p id="pageSubtitle">Una raccolta curata di strumenti, suite AI e utility 100% GRATUITI e OPEN-SOURCE per informatici e hacker etici.</p>
+      </div>
+      <div id="content"></div>
+    </main>
+
+    <footer id="footerNote"></footer>
+  </div>
+</div>
+
+<div id="toastStack"></div>
+
+<script>
+/* =========================================================
+   DATI: CATEGORIE (INTEGRATE CON LE FOTO INVIATE)
+========================================================= */
+const CATEGORIES = [
+  // CATEGORIE SPECIALI AI & HACKING DALLE FOTO INVIATE
+  { id:"ai-cybersecurity", label:"GPT & AI per Hacking Etico", emoji:"🤖", color:"#ef4444", description:"Agenti AI avanzati per Pentesting, Bug Bounty, Malware e Forensics" },
+  { id:"privacy-security", label:"Privacy & Messaggi Segreti", emoji:"🔐", color:"#10b981", description:"Messaggi autodistruggenti, numeri temporanei e anonimato online" },
+  { id:"media-downloader", label:"Media Downloader & Live Streaming", emoji:"🎬", color:"#f43f5e", description:"Download senza filigrana da social, TV in diretta e streaming" },
+  { id:"media-editing", label:"Fotoritocco & AI Media Tools", emoji:"🎨", color:"#ec4899", description:"Modifica testo in immagini, fotoritocco rapido e utility media" },
+  { id:"fun-utility", label:"Prank, Libri & Utility Curiosità", emoji:"🎭", color:"#eab308", description:"Falsi aggiornamenti OS per pause, riassunti audio libri e tool curiosi" },
+
+  // CATEGORIE PRO SITI & SLIDE
+  { id:"ai-websites", label:"AI Web Builders (Siti in 2 min)", emoji:"🚀", color:"#ec4899", description:"Crea siti web completi, landing page e UI con prompt AI in 2 minuti" },
+  { id:"ai-presentations", label:"AI Presentations (Slide in 2 min)", emoji:"📊", color:"#a855f7", description:"Genera presentazioni, pitch deck e slide trascinanti con l'IA" },
+  { id:"sysadmin-remote", label:"Sistemistica & Desktop Remoto", emoji:"🖥️", color:"#3b82f6", description:"Strumenti di assistenza remota, controllo ed enterprise management" },
+  { id:"backup-recovery", label:"Backup & Data Recovery", emoji:"💾", color:"#10b981", description:"Tool di salvataggio dati, clonabilità dischi e recupero file persi" },
+  { id:"automation-scripting", label:"Automazione & Scripting", emoji:"⚡", color:"#eab308", description:"PowerShell, Bash, Batch e tool di automazione compiti ripetitivi" },
+
+  // CATEGORIE IT GENERALE
+  { id:"informatica", label:"Informatica Generale", emoji:"💻", color:"#38bdf8", description:"Risorse generali, portali e news del mondo IT" },
+  { id:"programmazione", label:"Programmazione", emoji:"📝", color:"#818cf8", description:"Piattaforme di esercizio, algoritmi e coding" },
+  { id:"webdev", label:"HTML / CSS / JavaScript", emoji:"🌐", color:"#fb923c", description:"Sviluppo front-end e riferimenti web" },
+  { id:"python", label:"Python", emoji:"🐍", color:"#facc15", description:"Documentazione, framework e tool Python" },
+  { id:"java", label:"Java", emoji:"☕", color:"#f87171", description:"Ecosistema Java, framework e IDE" },
+  { id:"csharp", label:"C# / .NET", emoji:"🔷", color:"#c084fc", description:".NET, C# e strumenti Microsoft" },
+  { id:"linux", label:"Linux & Terminale", emoji:"🐧", color:"#a3e635", description:"Distribuzioni, wiki e comandi da terminale" },
+  { id:"windows", label:"Windows & Tweak", emoji:"🪟", color:"#22d3ee", description:"Sistema operativo, utility e PowerShell" },
+  { id:"networking", label:"Networking & Wi-Fi", emoji:"🔗", color:"#2dd4bf", description:"Reti, protocolli, Wi-Fi e analisi del traffico" },
+  { id:"dns", label:"DNS & Dominio", emoji:"🌍", color:"#60a5fa", description:"Lookup, propagazione e diagnostica DNS" },
+  { id:"cloud", label:"Cloud & Hosting", emoji:"☁️", color:"#7dd3fc", description:"Provider cloud, hosting e deploy" },
+  { id:"docker", label:"Docker & Kubernetes", emoji:"🐳", color:"#93c5fd", description:"Container, orchestrazione e immagini" },
+  { id:"git", label:"Git / GitHub", emoji:"🔀", color:"#cbd5e1", description:"Versionamento del codice e collaborazione" },
+  { id:"api", label:"API & Web Services", emoji:"🔌", color:"#e879f9", description:"Test, documentazione e design delle API" },
+  { id:"database", label:"Database SQL & NoSQL", emoji:"🗄️", color:"#34d399", description:"SQL, NoSQL e gestione dati" },
+  { id:"devops", label:"DevOps & CI/CD", emoji:"⚙️", color:"#fbbf24", description:"CI/CD, automazione e infrastruttura" },
+  { id:"cybersecurity", label:"Cybersecurity", emoji:"🛡️", color:"#fb7185", description:"Sicurezza informatica e best practice" },
+  { id:"pentesting", label:"Pentesting & Lab", emoji:"⚔️", color:"#ef4444", description:"Penetration testing e lab pratici" },
+  { id:"osint", label:"OSINT & Investigazione", emoji:"🕵️", color:"#4ade80", description:"Open Source Intelligence e ricerca dati" },
+  { id:"reverse", label:"Reverse Engineering", emoji:"🔬", color:"#a78bfa", description:"Disassembly, debugging e analisi binari" },
+  { id:"malware", label:"Malware Analysis", emoji:"🐛", color:"#fb923c", description:"Sandbox, analisi dinamica e statica" },
+  { id:"threatintel", label:"Threat Intelligence", emoji:"📡", color:"#f472b6", description:"Feed di minacce e indicatori di compromissione" },
+  { id:"tempmail", label:"Email Temporanee", emoji:"📧", color:"#67e8f9", description:"Caselle email usa e getta per registrazioni e test" },
+  { id:"virtualnumbers", label:"Numeri Virtuali", emoji:"📱", color:"#bef264", description:"SMS e numeri temporanei per verifiche" },
+  { id:"iplookup", label:"IP Lookup & Geolocation", emoji:"📍", color:"#fca5a5", description:"Geolocalizzazione IP, ISP e diagnostica" },
+  { id:"googledorks", label:"Google Dorks", emoji:"🔎", color:"#3b82f6", description:"Motore Google e tecniche di ricerca avanzata" },
+  { id:"ai", label:"AI Assistant & LLM", emoji:"🤖", color:"#a5b4fc", description:"Intelligenza artificiale generativa e modelli linguistici" },
+  { id:"aicoding", label:"AI Coding Assistants", emoji:"🧠", color:"#f0abfc", description:"Assistenti AI per generare, spiegare e refactorizzare codice" },
+  { id:"utility", label:"Utility Veloci", emoji:"🔧", color:"#94a3b8", description:"Strumenti online rapidi per conversione e calcoli" },
+  { id:"docs", label:"Documentazione Tecnica", emoji:"📚", color:"#fde047", description:"Riferimenti tecnici e standard ufficiali" },
+  { id:"ctf", label:"CTF & Security Games", emoji:"🚩", color:"#6ee7b7", description:"Capture The Flag e wargame di sicurezza" },
+  { id:"certificazioni", label:"Certificazioni IT", emoji:"🎓", color:"#fdba74", description:"Percorsi di certificazione ufficiali per il mondo IT" },
+  { id:"hardware", label:"Hardware & Modding", emoji:"🔩", color:"#f97316", description:"Componenti, single-board computer ed elettronica" },
+  { id:"hwdiag", label:"Diagnostica Hardware & Benchmark", emoji:"🩺", color:"#f43f5e", description:"Scansiona PC e componenti per individuare guasti e stabilità" },
+  { id:"podcast", label:"Podcast & YouTube Tech", emoji:"🎙️", color:"#38bdf8", description:"Canali e podcast italiani e internazionali sul mondo IT" },
+
+  { id:"net-labs", label:"Laboratori & Emulazione Reti", emoji:"🛜", color:"#a855f7", description:"Piattaforme di emulazione, virtualizzazione e lab di rete" },
+  { id:"firmware-bios", label:"Firmware & BIOS Repository", emoji:"💾", color:"#f59e0b", description:"Download, modifiche e database di BIOS, VBIOS e firmware" },
+  { id:"regex-parser", label:"Regex & Parser Utilities", emoji:"🔣", color:"#06b6d4", description:"Parsing di log, regex tester e manipolazione stringhe al volo" },
+  { id:"monitoring-snmp", label:"Monitoraggio & SNMP Tools", emoji:"📊", color:"#10b981", description:"Supervisione server, traffico di rete e metriche SNMP/UPnP" },
+  { id:"cabling-standards", label:"Cablaggio & Standard di Rete", emoji:"🔌", color:"#ef4444", description:"Schemi di crimpatura RJ45, codici colore e guide rame/fibra" },
+
+  { id:"antivirus-sec", label:"Antivirus & Rilevamento Malware", emoji:"🛡️", color:"#ef4444", description:"Strumenti di scansione, rimozione malware ed euristiche antivirus" },
+  { id:"data-recovery", label:"Recupero Dati & Dischi", emoji:"🩹", color:"#10b981", description:"Ripristino file eliminati, partizioni corrotte e file system" },
+  { id:"net-utilities", label:"Rete & Diagnostica Connessioni", emoji:"🌐", color:"#38bdf8", description:"Strumenti per analisi pacchetti, diagnostica IP, routing e socket" },
+  { id:"db-tools", label:"Database & Query Managers", emoji:"🗄️", color:"#a855f7", description:"Client universali, gestione SQL/NoSQL e ottimizzazione query" },
+  { id:"boot-usb", label:"Boot USB & Live OS", emoji:"🔌", color:"#f59e0b", description:"Utility per la creazione di USB avviabili, ISO live e rescue disk" },
+  { id:"backup-sync", label:"Backup & Sincronizzazione Dati", emoji:"📦", color:"#06b6d4", description:"Soluzioni di backup automatizzato, immagini di sistema e replica" },
+];;;
+const CAT_MAP = Object.fromEntries(CATEGORIES.map(c => [c.id, c]));
+
+/* =========================================================
+   DATI: RISORSE (CON I SOFTWARE DELLE SCHERMATE INVIATE)
+========================================================= */
+let _uid = 0;
+function R(category, name, description, url){
+  return { id: category + "-" + (_uid++), name, description, url, category };
+}
+
+const RESOURCES = [
+  // 1. GPT & AI PER HACKING ETICO
+  R("ai-cybersecurity","PentestGPT","Agente AI open-source guidato da LLM per penetration testing","https://github.com/GreyDoff/PentestGPT"),
+  R("ai-cybersecurity","OWASP ZAP AI","Scanner di sicurezza web open-source con integrazione AI","https://www.zaproxy.org"),
+  R("ai-cybersecurity","Nuclei Vulnerability Scanner","Scanner di vulnerabilità open-source basato su template community","https://github.com/projectdiscovery/nuclei"),
+  R("ai-cybersecurity","Cylect.io","Motore di ricerca OSINT gratuito potenziato dall'IA","https://cylect.io"),
+  R("ai-cybersecurity","HackTricks Knowledge-Base","La guida completa e gratuita a tutte le tecniche di hacking etico","https://book.hacktricks.xyz"),
+  R("ai-cybersecurity","SecLists Repository","Raccolta gratuita e open-source di payload, username e parole chiave","https://github.com/danielmiessler/SecLists"),
+  R("ai-cybersecurity","LocalAI Pentest","Integrazione locale con modelli open-source senza abbonamenti","https://localai.io"),
+
+  // 2. PRIVACY & MESSAGGI SEGRETI
+  R("privacy-security","PrivNote.com","Messaggi cifrati ad autodistruzione automatica dopo la lettura","https://privnote.com"),
+  R("privacy-security","Quackr","SMS e numeri di telefono temporanei completamente gratuiti","https://quackr.io"),
+  R("privacy-security","SimpleLogin","Alias email gratuiti per proteggere la propria casella dallo spam","https://simplelogin.io"),
+  R("privacy-security","Bitwarden","Gestore di password open-source e 100% gratuito per uso personale","https://bitwarden.com"),
+  R("privacy-security","Proton Pass Free","Gestore password cifrato e alias email gratuiti","https://proton.me/pass"),
+
+  // 3. MEDIA DOWNLOADER & LIVE STREAMING
+  R("media-downloader","Cobalt.tools","Downloader open-source e senza pubblicità per video TikTok, IG e YouTube","https://cobalt.tools"),
+  R("media-downloader","TV.garden","Canali TV in diretta streaming gratuita da tutto il mondo su mappa interattiva","https://tv.garden"),
+  R("media-downloader","yt-dlp","Il miglior strumento CLI open-source per scaricare qualsiasi video/audio","https://github.com/yt-dlp/yt-dlp"),
+  R("media-downloader","MovieBox","Piattaforma gratuita per esplorare film e contenuti multimediali","https://moviebox.app"),
+
+  // 4. FOTORITOCCO & AI MEDIA TOOLS
+  R("media-editing","Photopea","Editor grafico completo gratuito via browser (alternativa a Photoshop)","https://www.photopea.com"),
+  R("media-editing","Photext.shop","Modifica il testo in immagini e screenshot direttamente online gratis","https://photext.shop"),
+  R("media-editing","GIMP","Editor di immagini professionale open-source e gratuito per desktop","https://www.gimp.org"),
+  R("media-editing","Remove.bg","Rimuovi lo sfondo da qualsiasi immagine in un secondo","https://www.remove.bg"),
+
+  // 5. PRANK, LIBRI & UTILITY CURIOSITÀ
+  R("fun-utility","FakeUpdate.net","Falsi aggiornamenti OS realistici per simulate pause di lavoro","https://fakeupdate.net"),
+  R("fun-utility","Hacker Typer","Simulatore di riga di comando hacker da schermo","https://hackertyper.com"),
+  R("fun-utility","Window Swap","Guarda dalle finestre di sconosciuti in giro per il mondo in streaming","https://www.window-swap.com"),
+  R("fun-utility","Sobrief","Riassunti audio gratuiti di libri ed estratti utili","https://sobrief.com"),
+
+  // 6. AI WEB BUILDERS
+  R("ai-websites","Bolt.new","Crea ed esegui app web full-stack direttamente nel browser","https://bolt.new"),
+  R("ai-websites","v0.dev by Vercel","Generatore di componenti UI React/Tailwind gratuito","https://v0.dev"),
+  R("ai-websites","GitHub Pages","Hosting web statico completamente gratuito offerto da GitHub","https://pages.github.com"),
+  R("ai-websites","Netlify Free","Pubblica siti web e web-app statiche a costo zero","https://www.netlify.com"),
+
+  // 7. AI PRESENTATIONS
+  R("ai-presentations","Gamma App","Genera presentazioni visive con crediti gratuiti all'iscrizione","https://gamma.app"),
+  R("ai-presentations","Excalidraw","Lavagna visiva open-source e gratuita per schemi e diagrammi","https://excalidraw.com"),
+  R("ai-presentations","Draw.io","Piattaforma gratuita e open-source per diagrammi di rete e diapositive","https://app.diagrams.net"),
+
+  // 8. SISTEMISTICA & DESKTOP REMOTO
+  R("sysadmin-remote","RustDesk","Alternativa open-source a TeamViewer e AnyDesk per controllo remoto","https://rustdesk.com"),
+  R("sysadmin-remote","Sysinternals Suite","Suite di utility di diagnostica Microsoft completamente gratuita","https://learn.microsoft.com/en-us/sysinternals/"),
+  R("sysadmin-remote","Ventoy","Crea USB multi-boot trascinando semplicemente i file ISO","https://www.ventoy.net"),
+  R("sysadmin-remote","Rufus","Formattazione e creazione chiavette USB avviabili open-source","https://rufus.ie"),
+  R("sysadmin-remote","MobaXterm Home","Terminal SSH, RDP, VNC e X11 gratuito per uso personale","https://mobaxterm.mobatek.net"),
+  R("sysadmin-remote","PuTTY","Storico client SSH e Telnet open-source e gratuito","https://www.putty.org"),
+
+  // 9. BACKUP & DATA RECOVERY
+  R("backup-recovery","Clonezilla","Software open-source per clonazione e bare-metal backup di dischi","https://clonezilla.org"),
+  R("backup-recovery","TestDisk & PhotoRec","Strumenti open-source per il recupero dati e partizioni corrotte","https://www.cgsecurity.org"),
+  R("backup-recovery","Recuva Free","Recupera file cancellati accidentalmente da schede e USB","https://www.ccleaner.com/recuva"),
+
+  // 10. AUTOMAZIONE & SCRIPTING
+  R("automation-scripting","AutoHotkey","Linguaggio di scripting open-source per automatizzare Windows","https://www.autohotkey.com"),
+  R("automation-scripting","n8n.io (Self-Hosted)","Automazione dei workflow open-source ed eseguibile gratis","https://n8n.io"),
+  R("automation-scripting","PowerShell Gallery","Repository gratuito di script e moduli PowerShell ufficiali","https://www.powershellgallery.com"),
+  R("automation-scripting","UniGetUI","Interfaccia grafica open-source per i package manager di Windows","https://github.com/marticliment/UniGetUI"),
+
+  // 11. INFORMATICA GENERALE
+  R("informatica","W3Schools","Tutorial ed esempi gratuiti su tutte le tecnologie web","https://www.w3schools.com"),
+  R("informatica","GeeksforGeeks","Articoli tecnici e guide di informatica completamente gratuite","https://www.geeksforgeeks.org"),
+  R("informatica","freeCodeCamp","Corsi gratuiti con certificazioni di programmazione","https://www.freecodecamp.org"),
+  R("informatica","HTML.it","Portale italiano di riferimento per lo sviluppo web e guide IT","https://www.html.it"),
+
+  // 12. PROGRAMMAZIONE
+  R("programmazione","Stack Overflow","La community gratuita di domande e risposte per sviluppatori","https://stackoverflow.com"),
+  R("programmazione","GitHub","Piattaforma aperta per l'hosting e il versionamento del codice","https://github.com"),
+  R("programmazione","Roadmap.sh","Mappe di apprendimento open-source per carriere IT","https://roadmap.sh"),
+  R("programmazione","LeetCode","Esercizi gratuiti di algoritmi e strutture dati per interviste","https://leetcode.com"),
+  R("programmazione","Codewars","Allenati risolvendo kata di programmazione gratuiti","https://www.codewars.com"),
+
+  // 13. HTML / CSS / JAVASCRIPT
+  R("webdev","MDN Web Docs","La documentazione ufficiale e completa per HTML, CSS e JavaScript","https://developer.mozilla.org"),
+  R("webdev","CSS-Tricks","Guide, articoli e trucchi avanzati per il layout con CSS","https://css-tricks.com"),
+  R("webdev","Can I Use","Verifica gratuita della compatibilità delle feature web sui browser","https://caniuse.com"),
+  R("webdev","CodePen","Editor online per HTML, CSS e JS con anteprima live ed esempi","https://codepen.io"),
+
+  // 14. PYTHON
+  R("python","Python.org Official","Documentazione ufficiale del linguaggio Python e download gratuiti","https://www.python.org"),
+  R("python","Real Python Free Guides","Tutorial gratuiti approfonditi e best practice in Python","https://realpython.com"),
+  R("python","PyPI","Python Package Index, l'indice ufficiale dei pacchetti open-source","https://pypi.org"),
+  R("python","Automate the Boring Stuff","Libro gratuito per automatizzare compiti quotidiani con Python","https://automatetheboringstuff.com"),
+
+  // 15. JAVA
+  R("java","Oracle Java Docs","Documentazione ufficiale del JDK e del linguaggio Java","https://docs.oracle.com/en/java/"),
+  R("java","Baeldung","Guida e tutorial gratuiti sul mondo Java, Spring e backend","https://www.baeldung.com"),
+  R("java","Spring Initializr","Generatore gratuito per configurare progetti Spring Boot istantaneamente","https://start.spring.io"),
+  R("java","Java Design Patterns","Raccolta open-source di design pattern implementati in Java","https://java-design-patterns.com"),
+
+  // 16. C# / .NET
+  R("csharp","Microsoft .NET Docs","Documentazione e guide ufficiali Microsoft completamente gratuite per C#","https://learn.microsoft.com/en-us/dotnet/"),
+  R("csharp","NuGet Gallery","Repository gestore pacchetti ufficiale per la community .NET","https://www.nuget.org"),
+  R("csharp","DotNetFiddle","Scrivi, compila ed esegui codice C# direttamente nel browser gratis","https://dotnetfiddle.net"),
+  R("csharp","C# Station","Tutorial gratuiti per principianti ed esperti sul linguaggio C#","https://csharp-station.com"),
+
+  // 17. LINUX & TERMINALE
+  R("linux","Arch Wiki","La documentazione Linux più dettagliata e completamente gratuita","https://wiki.archlinux.org"),
+  R("linux","Kali Linux","Distribuzione open-source per pentesting e sicurezza","https://www.kali.org"),
+  R("linux","ExplainShell","Spiega gratis la sintassi e le flag di qualsiasi comando bash/shell","https://explainshell.com"),
+  R("linux","LinuxCommand.org","Corso gratuito da riga di comando per imparare il terminale Linux","https://linuxcommand.org"),
+
+  // 18. WINDOWS & TWEAK
+  R("windows","Sysinternals Suite","Suite di utility di diagnosi ufficiali Microsoft a costo zero","https://learn.microsoft.com/en-us/sysinternals/"),
+  R("windows","NirSoft","Raccolta completa di utility gratuite per analisi e diagnostica Windows","https://www.nirsoft.net"),
+  R("windows","WizTree","L'analizzatore di spazio disco gratuito e ultra-veloce per Windows","https://diskanalyzer.com"),
+  R("windows","Chris Titus Tech Windows Utility","Script open-source per debloat e ottimizzazione rapida di Windows","https://christitus.com/windows-tool/"),
+
+  // 19. NETWORKING & WI-FI
+  R("networking","Wireshark","Il miglior analizzatore di pacchetti e traffico di rete open-source","https://www.wireshark.org"),
+  R("networking","Nmap Official","Scanner di porte e di rete open-source e gratuito","https://nmap.org"),
+  R("networking","Angry IP Scanner","Port scanner e scanner IP di rete veloce e open-source","https://angryip.org"),
+  R("networking","Subnet Calculator","Calcolatore gratuito di subnet IPv4 ed IPv6 per sistemisti di rete","https://www.subnet-calculator.com"),
+
+  // 20. DNS & DOMINIO
+  R("dns","DNS Checker","Verifica la propagazione DNS globale in tempo reale su molteplici server","https://dnschecker.org"),
+  R("dns","Cloudflare 1.1.1.1","Resolver DNS pubblico ultra-veloce e orientato alla privacy","https://1.1.1.1"),
+  R("dns","MXToolbox","Diagnostica gratuita per record DNS, server mail MX e verifica blacklist","https://mxtoolbox.com"),
+  R("dns","DNSViz","Strumento di analisi visiva per la catena di autenticazione DNSSEC","https://dnsviz.net"),
+
+  // 21. CLOUD & HOSTING
+  R("cloud","Vercel Free Tier","Hosting ottimizzato per progetti web frontend e microservizi","https://vercel.com"),
+  R("cloud","Netlify","Piattaforma gratuita per l'hosting di siti statici e jamstack","https://www.netlify.com"),
+  R("cloud","AWS Free Tier","Piano gratuito Amazon Web Services per imparare l'infrastruttura cloud","https://aws.amazon.com/free/"),
+  R("cloud","Oracle Cloud Free Tier","VPS ed istanze cloud con risorse sempre gratuite a vita","https://www.oracle.com/cloud/free/"),
+
+  // 22. DOCKER & KUBERNETES
+  R("docker","Docker Hub","Registro pubblico ufficiale ed open-source di immagini container","https://hub.docker.com"),
+  R("docker","Portainer Community Edition","Interfaccia grafica open-source per la gestione di container Docker","https://www.portainer.io"),
+  R("docker","LazyDocker","Interfaccia da terminale veloce ed open-source per gestire Docker","https://github.com/jesseduffield/lazydocker"),
+  R("docker","Kubernetes Docs","Documentazione ufficiale gratuita per l'orchestrazione di container","https://kubernetes.io/docs/"),
+
+  // 23. GIT / GITHUB
+  R("git","Git Official Docs","Manuale ufficiale e riferimento completo dei comandi Git","https://git-scm.com/doc"),
+  R("git","Learn Git Branching","Visualizzatore ed esercitatore interattivo sui rami Git gratis","https://learngitbranching.js.org"),
+  R("git","Oh My Git!","Gioco open-source per imparare l'uso di Git in modo divertente","https://ohmygit.org"),
+  R("git","GitKraken Free","Client grafico Git intuitivo per sviluppatori","https://www.gitkraken.com"),
+
+  // 24. API & WEB SERVICES
+  R("api","Postman Free","Piattaforma per costruire, collaudare e documentare API","https://www.postman.com"),
+  R("api","Hoppscotch","Alternativa open-source e ultra-leggera a Postman direttamente via browser","https://hoppscotch.io"),
+  R("api","Insomnia Core","Client REST e GraphQL open-source elegante per testare le API","https://insomnia.rest"),
+  R("api","JSONPath Finder","Trova il percorso esatto di qualsiasi elemento nei file JSON","https://jsonpathfinder.com"),
+
+  // 25. DATABASE SQL & NOSQL
+  R("database","DBeaver Community","Client database universale ed open-source per SQL e NoSQL","https://dbeaver.io"),
+  R("database","PostgreSQL Official","Il database relazionale open-source più avanzato al mondo","https://www.postgresql.org"),
+  R("database","Supabase Free","Alternativa open-source a Firebase basata su PostgreSQL","https://supabase.com"),
+  R("database","Beekeeper Studio","Editor e gestore SQL open-source con interfaccia moderna","https://www.beekeeperstudio.io"),
+
+  // 26. DEVOPS & CI/CD
+  R("devops","Ansible Docs","Guida ufficiale all'automazione ed alla gestione delle configurazioni","https://docs.ansible.com"),
+  R("devops","Terraform Registry","Provider e moduli open-source per l'Infrastructure as Code","https://registry.terraform.io"),
+  R("devops","GitHub Actions","Automazione CI/CD gratuita integrata per i repository pubblici","https://github.com/features/actions"),
+  R("devops","GitLab CI/CD Docs","Documentazione gratuita per pipeline di build e deployment","https://docs.gitlab.com/ee/ci/"),
+
+  // 27. CYBERSECURITY
+  R("cybersecurity","OWASP Top 10","Standard aperto sulle vulnerabilità web più critiche","https://owasp.org"),
+  R("cybersecurity","Have I Been Pwned","Verifica se la tua e-mail è finita in data breach conosciuti","https://haveibeenpwned.com"),
+  R("cybersecurity","CISA Known Exploited","Catalogo ufficiale delle vulnerabilità attivamente sfruttate","https://www.cisa.gov/known-exploited-vulnerabilities-catalog"),
+  R("cybersecurity","PrivSec.dev","Guide pratiche e risorse per rafforzare la sicurezza digitale","https://privsec.dev"),
+
+  // 28. PENTESTING & LAB
+  R("pentesting","PayloadsAllTheThings","Repository open-source con cheat sheet e payload per pentesting","https://github.com/swisskyrepo/PayloadsAllTheThings"),
+  R("pentesting","GTFOBins","Lista di comandi per la privilege escalation su Unix/Linux","https://gtfobins.github.io"),
+  R("pentesting","PortSwigger Web Security","Laboratori gratuiti sulle vulnerabilità web creati da Burp Suite","https://portswigger.net/web-security"),
+  R("pentesting","TryHackMe Free","Percorsi di apprendimento gratuiti per iniziare con l'hacking etico","https://tryhackme.com"),
+
+  // 29. OSINT & INVESTIGAZIONE
+  R("osint","OSINT Framework","Raccolta strutturata di tutti i principali strumenti OSINT gratuiti","https://osintframework.com"),
+  R("osint","Shodan Free","Motore di ricerca per dispositivi ed asset connessi ad internet","https://www.shodan.io"),
+  R("osint","Epieos","Ricerca OSINT gratuita per e-mail e numeri di telefono sui servizi","https://epieos.com"),
+  R("osint","IntelTechniques Free","Strumenti ed utility OSINT gratuite per la ricerca informazioni","https://inteltechniques.com"),
+
+  // 30. REVERSE ENGINEERING
+  R("reverse","Ghidra","Suite di reverse engineering open-source sviluppata dalla NSA","https://ghidra-sre.org"),
+  R("reverse","Cutter (Rizin)","Interfaccia grafica moderna per il framework di disassemblaggio Rizin","https://cutter.re"),
+  R("reverse","Binary Ninja Free","Versione cloud gratuita per l'analisi visiva del codice binario","https://cloud.binary.ninja"),
+
+  // 31. MALWARE ANALYSIS
+  R("malware","VirusTotal","Analizza file e link sospetti con decine di motori antivirus gratuiti","https://www.virustotal.com"),
+  R("malware","ANY.RUN Free","Sandbox interattiva per eseguire e analizzare malware in tempo reale","https://any.run"),
+  R("malware","Hybrid Analysis","Analizzatore di file malevoli e malware gratuito potenziato da VxCube","https://www.hybrid-analysis.com"),
+
+  // 32. THREAT INTELLIGENCE
+  R("threatintel","AlienVault OTX","La più grande community aperta per scambiare indicatori di compromissione","https://otx.alienvault.com"),
+  R("threatintel","MISP Project","Piattaforma open-source per la condivisione di informazioni sulle minacce","https://www.misp-project.org"),
+  R("threatintel","Urlscan.io","Scansione visiva ed analisi gratuita di URL e siti di phishing","https://urlscan.io"),
+  R("threatintel","ThreatFox","Database open-source di IoC malevoli aggiornato in tempo reale","https://threatfox.abuse.ch"),
+
+  // 33. EMAIL TEMPORANEE
+  R("tempmail","10 Minute Mail","Indirizzo e-mail usa e getta che dura 10 minuti","https://10minutemail.com"),
+  R("tempmail","Temp Mail","Casella e-mail temporanea sicura e veloce per iscrizioni rapida","https://temp-mail.org"),
+  R("tempmail","Maildrop","Casella di posta usa e getta gratuita senza registrazione","https://maildrop.cc"),
+  R("tempmail","Guerrilla Mail","Ricevi ed invia e-mail in modo temporaneo ed anonimo","https://www.guerrillamail.com"),
+
+  // 34. NUMERI VIRTUALI
+  R("virtualnumbers","Quackr","SMS e numeri temporanei per verifiche di account online","https://quackr.io"),
+  R("virtualnumbers","Receive-SMS-Online","Numeri di telefono pubblici gratuiti per ricevere SMS di verifica","https://receive-sms-online.info"),
+  R("virtualnumbers","AnonymSMS","Ricevi SMS online con numeri virtuali da vari paesi gratis","https://anonymsms.com"),
+
+  // 35. IP LOOKUP & GEOLOCATION
+  R("iplookup","IPInfo.io","Lookup ed API per indirizzi IP, ASN, ISP e geolocalizzazione","https://ipinfo.io"),
+  R("iplookup","WhatIsMyIPAddress","Verifica il tuo IP pubblico, posizione stimata e dati di rete","https://whatismyipaddress.com"),
+  R("iplookup","IP-API","Servizio rapido e gratuito di query IP per sviluppatori","https://ip-api.com"),
+  R("iplookup","BGPView","Analizzatore di Autonomous System (ASN), rotte BGP e prefissi","https://bgpview.io"),
+
+  // 36. GOOGLE DORKS
+  R("googledorks","Google Hacking DB","Database ufficiale ed esaustivo delle query Google Dorking su Exploit-DB","https://www.exploit-db.com/google-hacking-database"),
+  R("googledorks","DorkSearch","Motore di ricerca per generare e testare rapidamente Google Dorks","https://dorksearch.com"),
+  R("googledorks","Grep.app","Ricerca per stringhe ed espressioni regolari in milioni di repo GitHub","https://grep.app"),
+
+  // 37. AI ASSISTANT & LLM
+  R("ai","Google AI Studio","Accesso ai modelli Gemini Pro/Flash tramite API e playground gratis","https://aistudio.google.com"),
+  R("ai","Hugging Face Chat","Chatta gratis con modelli open-source (Llama, Mistral, Qwen)","https://huggingface.co/chat"),
+  R("ai","Ollama","Esegui modelli di intelligenza artificiale sul tuo computer in locale","https://ollama.com"),
+  R("ai","DuckDuckGo AI Chat","Chat anonima e gratuita alimentata da modelli AI di livello avanzato","https://duckduckgo.com/duckduckgo-ai-chat"),
+  R("ai","Jan.ai","Alternativa desktop open-source a ChatGPT da eseguire 100% offline","https://jan.ai"),
+
+  // 38. AI CODING ASSISTANTS
+  R("aicoding","Codeium Free","Assistente AI gratuito per il completamento del codice per VS Code ed IDE","https://codeium.com"),
+  R("aicoding","Tabnine Community","Completamento codice AI orientato alla privacy per sviluppatori","https://www.tabnine.com"),
+  R("aicoding","Continue.dev","Estensione AI open-source per VS Code per collegare modelli locali","https://github.com/continuedev/continue"),
+
+  // 39. UTILITY VELOCI
+  R("utility","CyberChef","Il coltellino svizzero definitivo per decodifica, cifratura e manipolazione dati","https://gchq.github.io/CyberChef/"),
+  R("utility","Regex101","Costruisci, collauda e analizza espressioni regolari in tempo reale","https://regex101.com"),
+  R("utility","It-Tools","Raccolta open-source di oltre 50 utility pratiche per programmatori e sysadmin","https://it-tools.tech"),
+
+  // 40. DOCUMENTAZIONE TECNICA
+  R("docs","DevDocs.io","Tutte le documentazioni per sviluppatori ordinate in un'unica web-app offline","https://devdocs.io"),
+  R("docs","Read the Docs","Piattaforma aperta di hosting per documentazioni di progetti open-source","https://readthedocs.org"),
+  R("docs","Cheatography","Migliaia di cheat sheet e schede riassuntive da stampare o consultare","https://cheatography.com"),
+
+  // 41. CTF & SECURITY GAMES
+  R("ctf","CTFtime","Il portale mondiale degli eventi, classifiche e Writeup di Capture The Flag","https://ctftime.org"),
+  R("ctf","OverTheWire Bandit","Wargame gratuito per imparare la sicurezza ed i comandi Linux passo dopo passo","https://overthewire.org/wargames/bandit/"),
+  R("ctf","PicoCTF","Piattaforma di apprendimento della cybersecurity gratuita della Carnegie Mellon","https://picoctf.org"),
+  R("ctf","Cmd Challenge","Sfide pratiche nel terminale da riga di comando per affinare la tua Bash","https://cmdchallenge.com"),
+
+  // 42. CERTIFICAZIONI IT
+  R("certificazioni","CompTIA Free Resources","Guide e risorse di preparazione alle certificazioni IT A+, Network+ e Security+","https://www.comptia.org/certifications"),
+  R("certificazioni","Cisco Learning Network","Materiale di studio e percorsi ufficiali per le certificazioni CCNA e CCNP","https://learningnetwork.cisco.com"),
+  R("certificazioni","AWS Certification Prep","Corsi ed esami di simulazione gratuiti per certificazioni Amazon Cloud","https://aws.amazon.com/certification/"),
+
+  // 43. HARDWARE & MODDING
+  R("hardware","PCPartPicker","Configuratore hardware PC con verifica automatica di compatibilità dei pezzi","https://pcpartpicker.com"),
+  R("hardware","Raspberry Pi Docs","Documentazione e schemi di progetti ufficiali per schede Raspberry Pi","https://www.raspberrypi.org"),
+  R("hardware","Arduino Project Hub","Community aperta per progetti, codici e schemi di elettronica con Arduino","https://create.arduino.cc/projecthub"),
+  R("hardware","iFixit","Guide gratuite di riparazione passo-passo per qualsiasi dispositivo hardware","https://www.ifixit.com"),
+
+  // 44. DIAGNOSTICA HARDWARE & BENCHMARK
+  R("hwdiag","CPU-Z","Utility essenziale per rilevare specifiche di CPU, scheda madre e RAM in tempo reale","https://www.cpuid.com/softwares/cpu-z.html"),
+  R("hwdiag","GPU-Z","Strumento per il monitoraggio avanzato di schede grafiche NVIDIA, AMD e Intel","https://www.techpowerup.com/gpuz/"),
+  R("hwdiag","HWiNFO","Monitoraggio completo e gratuito di tutti i sensori di temperatura ed hardware PC","https://www.hwinfo.com"),
+  R("hwdiag","MemTest86 Free","Test approfondito della memoria RAM a livello hardware prima del boot","https://www.memtest86.com"),
+  R("hwdiag","FurMark","Stress test ad alto carico e benchmark gratuito per schede video","https://geeks3d.com/furmark/"),
+  R("hwdiag","CrystalDiskInfo","Verifica lo stato di salute S.M.A.R.T. di SSD ed hard disk","https://crystalmark.info/en/software/crystaldiskinfo/"),
+
+  // 45. PODCAST & YOUTUBE TECH
+  R("podcast","NetworkChuck","Canale YouTube dinamico su Networking, Python, Linux e Cybersecurity","https://www.youtube.com/@NetworkChuck"),
+  R("podcast","Darknet Diaries","Podcast sulle storie vere di hacker, attacchi informatici e cybercrime","https://darknetdiaries.com"),
+  R("podcast","Fireship","Spiegazioni lampo di tecnologie, linguaggi e novità IT in 100 secondi","https://www.youtube.com/@Fireship"),
+  R("podcast","The CyberWire","Podcast giornaliero con le principali notizie nel mondo della sicurezza","https://thecyberwire.com"),
+
+  // 46. LABORATORI & EMULAZIONE RETI
+  R("net-labs","GNS3","Emulatore di rete avanzato ed open-source per simulare apparati Cisco e Juniper","https://www.gns3.com"),
+  R("net-labs","Cisco Packet Tracer","Software gratuito Cisco per la simulazione grafica di reti CCNA","https://www.netacad.com/courses/packet-tracer"),
+  R("net-labs","EVE-NG Community","Piattaforma di emulazione di rete multi-vendor per lab enterprise","https://www.eve-ng.net"),
+  R("net-labs","Containerlab","Strumento CLI leggero per orchestrare lab di rete tramite container Docker","https://containerlab.dev"),
+
+  // 47. FIRMWARE & BIOS REPOSITORY
+  R("firmware-bios","TechPowerUp VGA BIOS","Database pubblico e gratuito di VBIOS per schede video NVIDIA e AMD","https://www.techpowerup.com/vgabios/"),
+  R("firmware-bios","Station-Drivers","Repository gratuito di driver e BIOS per schede madri e periferiche PC","https://www.station-drivers.com"),
+  R("firmware-bios","Win-Raid Forum","Forum di riferimento per modding BIOS, integrazione microcode ed NVMe","https://forum.win-raid.com"),
+  R("firmware-bios","Coreboot","Progetto open-source per sostituire i BIOS proprietari con avvio sicuro","https://www.coreboot.org"),
+
+  // 48. REGEX & PARSER UTILITIES
+  R("regex-parser","Regex101","Il miglior tester ed editor di espressioni regolari in tempo reale","https://regex101.com"),
+  R("regex-parser","RegExr","Strumento visivo per imparare, testare e creare espressioni regolari","https://regexr.com"),
+  R("regex-parser","Logstash","Motore open-source per il parsing e l'elaborazione di log di sistema","https://www.elastic.co/logstash"),
+  R("regex-parser","JSON Path Finder","Trova il percorso esatto di qualsiasi chiave all'interno di un file JSON","https://jsonpathfinder.com"),
+
+  // 49. MONITORAGGIO & SNMP TOOLS
+  R("monitoring-snmp","Zabbix","Piattaforma enterprise open-source per il monitoraggio di reti e server","https://www.zabbix.com"),
+  R("monitoring-snmp","PRTG Network Monitor (Free 100 Sensors)","Monitoraggio visivo di rete gratuito fino a 100 sensori SNMP/WMI","https://www.paessler.com/prtg"),
+  R("monitoring-snmp","Nagios Core","Sistema di monitoraggio open-source per server, switch e servizi di rete","https://www.nagios.org"),
+
+  // 50. CABLAGGIO & STANDARD DI RETE
+  R("cabling-standards","Cable Color Code Guide","Riferimento visivo per i codici colore dei cavi RJ45 ethernet T568A e T568B","https://www.flukenetworks.com/knowledge-base/application-or-standards-articles-bnd/t568a-vs-t568b"),
+  R("cabling-standards","Fluke Networks Guides","Guide e standard tecnici per la certificazione di reti in rame e fibra","https://www.flukenetworks.com"),
+  R("cabling-standards","TIA-568 Cabling Standards","Specifiche ed informazioni sugli standard di cablaggio strutturato","https://www.trowbridge.ca/cabling-standards"),
+
+  // 51. ANTIVIRUS & RILEVAMENTO MALWARE
+  R("antivirus-sec","Malwarebytes Free","Scanner gratuito per rilevare e rimuovere malware e trojan ostinati","https://www.malwarebytes.com"),
+  R("antivirus-sec","Kaspersky Virus Removal Tool","Utility portatile e gratuita per sanificare sistemi infetti senza installazione","https://www.kaspersky.com/downloads/free-virus-removal-tool"),
+  R("antivirus-sec","Emsisoft Emergency Kit","Scanner antivirus portatile per bonificare PC infetti a costo zero","https://www.emsisoft.com/en/home/emergencykit/"),
+
+  // 52. RECOPERO DATI & DISCHI
+  R("data-recovery","EaseUS Data Recovery Free","Recupera gratuitamente fino a 2GB di file cancellati o formattati","https://www.easeus.com/datarecoverywizard/free-data-recovery-software.htm"),
+  R("data-recovery","TestDisk & PhotoRec","Strumento CLI open-source per ripristinare partizioni perse e dati","https://www.cgsecurity.org"),
+  R("data-recovery","DMDE Free","Editor di dischi ed utility per la ricerca di partizioni perse","https://dmde.com"),
+
+  // 53. RETE & DIAGNOSTICA CONNESSIONI
+  R("net-utilities","Angry IP Scanner","Port scanner ultra-veloce ed open-source per reti locali","https://angryip.org"),
+  R("net-utilities","GlassWire Free","Monitor visivo di rete con grafico del traffico in tempo reale","https://www.glasswire.com"),
+  R("net-utilities","Fiddler Classic","Web debugging proxy gratuito per intercettare il traffico HTTP/HTTPS","https://www.telerik.com/fiddler"),
+
+  // 54. DATABASE & QUERY MANAGERS
+  R("db-tools","TablePlus Free","Client moderno ed elegante per MySQL, PostgreSQL, SQLite e Redis","https://tableplus.com"),
+  R("db-tools","Beekeeper Studio","Editor e gestore SQL open-source per la gestione di più database","https://www.beekeeperstudio.io"),
+  R("db-tools","MongoDB Compass","Interfaccia grafica ufficiale e gratuita per esplorare dati su MongoDB","https://www.mongodb.com/products/tools/compass"),
+
+  // 55. BOOT USB & LIVE OS
+  R("boot-usb","BalenaEtcher","Strumento open-source per scrivere immagini ISO su chiavette USB e SD","https://etcher.balena.io"),
+  R("boot-usb","Hiren's BootCD PE","Ambiente di soccorso live basato su Windows 10 con decine di utility","https://www.hirensbootcd.org"),
+  R("boot-usb","SystemRescue","OS Linux live avviabile via USB per il ripristino di dischi e partizioni","https://www.system-rescue.org"),
+
+  // 56. BACKUP & SINCRONIZZAZIONE DATI
+  R("backup-sync","FreeFileSync","Strumento open-source per la sincronizzazione rapida di cartelle e dischi","https://freefilesync.org"),
+  R("backup-sync","Syncthing","Sincronizzazione file P2P continua, privata e cifrata open-source","https://syncthing.net"),
+  R("backup-sync","Duplicati","Client di backup cifrato ed open-source su server remoti e cloud","https://www.duplicati.com")
+];
+
+/* =========================================================
+   STATO & LOCALSTORAGE PERSISTENZA
+========================================================= */
+const STORAGE_KEY = "it-toolbox:favorites";
+let favorites = new Set();
+try{
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if(raw) favorites = new Set(JSON.parse(raw));
+}catch(e){}
+
+let query = "";
+let activeCategory = "all"; // "all" | "favorites" | categoryId
+let expanded = new Set(CATEGORIES.slice(0,5).map(c=>c.id));
+
+function saveFavorites(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(favorites))); }catch(e){}
+}
+
+function normalize(str){
+  return str.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
+}
+
+/* =========================================================
+   RENDER: SIDEBAR
+========================================================= */
+function getCounts(list){
+  const map = {};
+  list.forEach(r=>{ map[r.category] = (map[r.category]||0) + 1; });
+  return map;
+}
+
+function renderSidebar(filtered){
+  const counts = getCounts(filtered);
+  const favFilteredCount = filtered.filter(r => favorites.has(r.id)).length;
+  const nav = document.getElementById("navList");
+  nav.innerHTML = "";
+
+  const allItem = document.createElement("button");
+  allItem.className = "nav-item all" + (activeCategory==="all" ? " active" : "");
+  allItem.innerHTML = `<span class="nav-left"><span class="nav-emoji">🗂️</span><span class="label">Tutte le risorse</span></span><span class="count-badge">${filtered.length}</span>`;
+  allItem.onclick = () => selectCategory("all");
+  nav.appendChild(allItem);
+
+  const favItem = document.createElement("button");
+  favItem.className = "nav-item fav" + (activeCategory==="favorites" ? " active" : "");
+  favItem.innerHTML = `<span class="nav-left"><span class="nav-emoji">⭐</span><span class="label">Preferiti</span></span><span class="count-badge">${favFilteredCount}</span>`;
+  favItem.onclick = () => selectCategory("favorites");
+  nav.appendChild(favItem);
+
+  const sep = document.createElement("div");
+  sep.className = "sep";
+  nav.appendChild(sep);
+
+  CATEGORIES.forEach(cat=>{
+    const item = document.createElement("button");
+    item.className = "nav-item" + (activeCategory===cat.id ? " active" : "");
+    const count = counts[cat.id] || 0;
+    item.innerHTML = `<span class="nav-left"><span class="nav-emoji" style="color:${cat.color}">${cat.emoji}</span><span class="label">${cat.label}</span></span><span class="count-badge">${count}</span>`;
+    item.onclick = () => selectCategory(cat.id);
+    nav.appendChild(item);
+  });
+}
+
+function selectCategory(id){
+  activeCategory = id;
+  if(id!=="all" && id!=="favorites") expanded.add(id);
+  document.getElementById("sidebar").classList.remove("open");
+  document.getElementById("sidebarOverlay").classList.remove("show");
+  render();
+}
+
+/* =========================================================
+   RENDER: CARD
+========================================================= */
+function hostOf(url){
+  try{ return new URL(url).hostname.replace("www.",""); }catch(e){ return url; }
+}
+
+function createCard(res){
+  const cat = CAT_MAP[res.category] || { color:"#38bdf8", emoji:"🔗", label:res.category };
+  const isFav = favorites.has(res.id);
+  const card = document.createElement("div");
+  card.className = "card";
+  card.style.setProperty("--glow", cat.color);
+  card.innerHTML = `
+    <div class="card-top">
+      <div class="card-left">
+        <div class="card-emoji" style="color:${cat.color}">${cat.emoji}</div>
+        <div style="min-width:0;">
+          <p class="card-title">${res.name}</p>
+          <p class="card-host">${hostOf(res.url)}</p>
+        </div>
+      </div>
+      <button class="fav-btn ${isFav?'active':''}" title="Preferito">${isFav ? '⭐' : '☆'}</button>
+    </div>
+    <p class="card-desc">${res.description}</p>
+    <div class="card-bottom">
+      <span class="badge" style="color:${cat.color}">${cat.emoji} ${cat.label}</span>
+      <div class="card-actions">
+        <button class="action-btn copy" title="Copia link">📋</button>
+        <a class="action-btn open" title="Apri sito" href="${res.url}" target="_blank" rel="noreferrer noopener">↗</a>
+      </div>
+    </div>
+  `;
+  card.querySelector(".fav-btn").onclick = () => toggleFavorite(res.id);
+  card.querySelector(".copy").onclick = () => copyLink(res);
+  return card;
+}
+
+function toggleFavorite(id){
+  if(favorites.has(id)) favorites.delete(id);
+  else favorites.add(id);
+  saveFavorites();
+  render();
+}
+
+function copyLink(res){
+  const done = () => showToast(`Link di "${res.name}" copiato negli appunti`);
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(res.url).then(done).catch(()=>fallbackCopy(res.url, done));
+  }else{
+    fallbackCopy(res.url, done);
+  }
+}
+function fallbackCopy(text, cb){
+  const ta = document.createElement("textarea");
+  ta.value = text; ta.style.position="fixed"; ta.style.opacity="0";
+  document.body.appendChild(ta); ta.select();
+  try{ document.execCommand("copy"); }catch(e){}
+  document.body.removeChild(ta);
+  cb();
+}
+
+/* =========================================================
+   TOAST
+========================================================= */
+function showToast(msg){
+  const stack = document.getElementById("toastStack");
+  const t = document.createElement("div");
+  t.className = "toast";
+  t.innerHTML = `✅ ${msg}`;
+  stack.appendChild(t);
+  setTimeout(()=>{ t.remove(); }, 2200);
+}
+
+/* =========================================================
+   RENDER: CATEGORY SECTION
+========================================================= */
+function createCategorySection(cat, items, forceOpen){
+  const isOpen = forceOpen || expanded.has(cat.id);
+  const section = document.createElement("section");
+  section.className = "cat-section" + (isOpen ? " open" : "");
+  section.style.setProperty("--cat-color", cat.color);
+
+  const head = document.createElement("button");
+  head.className = "cat-head";
+  head.innerHTML = `
+    <div class="cat-head-left">
+      <div class="cat-emoji-box" style="color:${cat.color}">${cat.emoji}</div>
+      <div class="cat-head-text">
+        <h3>${cat.label}</h3>
+        <p>${cat.description}</p>
+      </div>
+    </div>
+    <div class="cat-head-right">
+      <span class="cat-count">${items.length} ${items.length===1?'risorsa':'risorse'}</span>
+      <span class="chevron">▾</span>
+    </div>
+  `;
+  head.onclick = () => {
+    if(expanded.has(cat.id)){
+      expanded.delete(cat.id);
+      section.classList.remove("open");
+    }else{
+      expanded.add(cat.id);
+      section.classList.add("open");
+    }
+  };
+  section.appendChild(head);
+
+  const body = document.createElement("div");
+  body.className = "cat-body";
+  const grid = document.createElement("div");
+  grid.className = "cat-grid";
+  items.forEach(res => grid.appendChild(createCard(res)));
+  body.appendChild(grid);
+  section.appendChild(body);
+
+  return section;
+}
+
+function createEmptyState(title, subtitle){
+  const div = document.createElement("div");
+  div.className = "empty";
+  div.innerHTML = `<div class="emoji-big">🔍</div><p class="t1">${title}</p><p class="t2">${subtitle}</p>`;
+  return div;
+}
+
+/* =========================================================
+   RENDER PRINCIPALE
+========================================================= */
+function render(){
+  const normalizedQuery = normalize(query.trim());
+
+  const filtered = !normalizedQuery ? RESOURCES : RESOURCES.filter(res=>{
+    const cat = CAT_MAP[res.category] || { label: "" };
+    const haystack = normalize(`${res.name} ${res.description} ${res.url} ${cat.label}`);
+    return haystack.includes(normalizedQuery);
+  });
+
+  renderSidebar(filtered);
+
+  const content = document.getElementById("content");
+  content.innerHTML = "";
+
+  const pageTitle = document.getElementById("pageTitle");
+  const pageSubtitle = document.getElementById("pageSubtitle");
+  const favBtn = document.getElementById("favBtn");
+  const favCount = document.getElementById("favCount");
+  favCount.textContent = favorites.size;
+  favBtn.classList.toggle("active", activeCategory==="favorites");
+
+  if(activeCategory === "favorites"){
+    pageTitle.textContent = "⭐ Preferiti";
+    pageSubtitle.textContent = "I collegamenti che hai salvato, disponibili offline nel browser.";
+    const favItems = filtered.filter(r => favorites.has(r.id));
+    if(favItems.length === 0){
+      content.appendChild(createEmptyState("Nessun preferito trovato", "Clicca sulla stella di una risorsa per salvarla qui."));
+    }else{
+      const grid = document.createElement("div");
+      grid.className = "cat-grid";
+      grid.style.padding = "0";
+      favItems.forEach(res => grid.appendChild(createCard(res)));
+      content.appendChild(grid);
+    }
+    document.getElementById("resultPill").textContent = favItems.length + " risultati";
+    return;
+  }
+
+  let cats;
+  if(activeCategory === "all"){
+    pageTitle.textContent = "Tutte le risorse";
+    pageSubtitle.textContent = "Una raccolta curata di strumenti, documentazione e suite AI per il lavoro quotidiano.";
+    cats = CATEGORIES;
+  }else{
+    const cat = CAT_MAP[activeCategory];
+    pageTitle.textContent = cat.label;
+    pageSubtitle.textContent = cat.description;
+    cats = [cat];
+  }
+
+  const sections = cats
+    .map(cat => ({ cat, items: filtered.filter(r => r.category === cat.id) }))
+    .filter(s => s.items.length > 0);
+
+  document.getElementById("resultPill").textContent = filtered.length + " risultati";
+
+  if(sections.length === 0){
+    content.appendChild(createEmptyState("Nessun risultato", "Prova a modificare la ricerca o seleziona un'altra categoria."));
+    return;
+  }
+
+  const forceOpen = Boolean(normalizedQuery) || activeCategory !== "all";
+  sections.forEach(({cat, items}) => {
+    content.appendChild(createCategorySection(cat, items, forceOpen));
+  });
+}
+
+/* =========================================================
+   EVENTI & SHORTCUT TASTIERA
+========================================================= */
+const searchInput = document.getElementById("searchInput");
+const clearSearchBtn = document.getElementById("clearSearch");
+searchInput.addEventListener("input", (e)=>{
+  query = e.target.value;
+  clearSearchBtn.style.display = query ? "flex" : "none";
+  render();
+});
+clearSearchBtn.addEventListener("click", ()=>{
+  query = "";
+  searchInput.value = "";
+  clearSearchBtn.style.display = "none";
+  render();
+});
+
+document.addEventListener("keydown", (e) => {
+  if((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k"){
+    e.preventDefault();
+    searchInput.focus();
+  }
+  if(e.key === "Escape" && document.activeElement === searchInput){
+    query = "";
+    searchInput.value = "";
+    clearSearchBtn.style.display = "none";
+    searchInput.blur();
+    render();
+  }
+});
+
+document.getElementById("favBtn").addEventListener("click", ()=>{
+  selectCategory(activeCategory === "favorites" ? "all" : "favorites");
+});
+
+function checkMobile(){
+  const openBtn = document.getElementById("openSidebarBtn");
+  if(window.innerWidth < 1024){
+    openBtn.style.display = "inline-flex";
+  }else{
+    openBtn.style.display = "none";
+  }
+}
+window.addEventListener("resize", checkMobile);
+checkMobile();
+
+document.getElementById("openSidebarBtn").addEventListener("click", ()=>{
+  document.getElementById("sidebar").classList.add("open");
+  document.getElementById("sidebarOverlay").classList.add("show");
+});
+document.getElementById("closeSidebarBtn").addEventListener("click", ()=>{
+  document.getElementById("sidebar").classList.remove("open");
+  document.getElementById("sidebarOverlay").classList.remove("show");
+});
+document.getElementById("sidebarOverlay").addEventListener("click", ()=>{
+  document.getElementById("sidebar").classList.remove("open");
+  document.getElementById("sidebarOverlay").classList.remove("show");
+});
+
+document.getElementById("footerNote").textContent =
+  "IT & AI Toolbox Pro · " + RESOURCES.length + " risorse curate · funziona completamente offline, i preferiti restano nel tuo browser";
+
+
+/* MATRIX RAIN EFFECT */
+(function initMatrix(){
+  const canvas = document.getElementById('matrixCanvas');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+
+  function resize(){
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  const chars = "0101010101010101ABCDEFHIJKLMNOPQRSTUVWXYZ#$&%*<>[]{}/*+~=";
+  const fontSize = 14;
+  let columns = Math.floor(canvas.width / fontSize);
+  let drops = Array(columns).fill(1);
+
+  function draw(){
+    ctx.fillStyle = "rgba(2, 4, 8, 0.1)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = "#34d399";
+    ctx.font = fontSize + "px 'Courier New', monospace";
+
+    for(let i = 0; i < drops.length; i++){
+      const text = chars.charAt(Math.floor(Math.random() * chars.length));
+      ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+      if(drops[i] * fontSize > canvas.height && Math.random() > 0.975){
+        drops[i] = 0;
+      }
+      drops[i]++;
+    }
+  }
+  setInterval(draw, 33);
+})();
+
+/* Avvio */
+render();
+
+/* =========================================================
+   SPLASH SCREEN
+========================================================= */
+document.getElementById("statCats").textContent = CATEGORIES.length;
+document.getElementById("statRes").textContent = RESOURCES.length;
+
+const BOOT_LINES = [
+  "> Establishing secure proxy tunnel...",
+  `> Loading ${CATEGORIES.length} security categories & ${RESOURCES.length} tools...`,
+  "> Bypassing firewall protocols & initializing matrix...",
+  "> Status: EXPECT US. Zero telemetry, 100% Gratisymous.",
+  "> Mainframe unlocked. Welcome, operator."
+];
+const terminalEl = document.getElementById("splashTerminal");
+let bootDelay = 0;
+BOOT_LINES.forEach((text, i) => {
+  const isLast = i === BOOT_LINES.length - 1;
+  setTimeout(() => {
+    const line = document.createElement("div");
+    line.className = "line" + (isLast ? " ok" : "");
+    line.textContent = text;
+    if(isLast){
+      const cursor = document.createElement("span");
+      cursor.className = "cursor";
+      line.appendChild(cursor);
+    }
+    terminalEl.appendChild(line);
+  }, bootDelay);
+  bootDelay += isLast ? 240 : 280;
+});
+
+function enterToolbox(){
+  const splash = document.getElementById("splash");
+  const app = document.getElementById("appRoot");
+  splash.classList.add("fade-out");
+  app.classList.add("visible");
+  setTimeout(() => { splash.style.display = "none"; }, 650);
+}
+document.getElementById("enterBtn").addEventListener("click", enterToolbox);
+document.addEventListener("keydown", (e) => {
+  if(e.key === "Enter" && !document.getElementById("splash").classList.contains("fade-out")){
+    enterToolbox();
+  }
+});
+</script>
+</body>
+</html>
